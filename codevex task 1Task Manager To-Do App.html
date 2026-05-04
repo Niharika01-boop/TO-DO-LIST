@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow - Smart To-Do</title>
+
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: rgba(255, 255, 255, 0.08);
+            --text: #fff;
+            --accent: #38bdf8;
+        }
+
+        .light {
+            --bg: #f1f5f9;
+            --card: rgba(0, 0, 0, 0.05);
+            --text: #000;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            transition: 0.4s;
+        }
+
+        .container {
+            width: 400px;
+            padding: 20px;
+            border-radius: 20px;
+            background: var(--card);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.8s ease;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        input {
+            width: 70%;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            outline: none;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            background: var(--accent);
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        .task {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            animation: slideUp 0.4s ease;
+        }
+
+        .completed {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .filters {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+        }
+
+        .toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="toggle" onclick="toggleMode()">🌙</div>
+
+    <div class="container">
+        <h1>TaskFlow</h1>
+
+        <input id="taskInput" placeholder="Add a task...">
+        <button onclick="addTask()">+</button>
+
+        <div class="filters">
+            <button onclick="setFilter('all')">All</button>
+            <button onclick="setFilter('completed')">Done</button>
+            <button onclick="setFilter('pending')">Pending</button>
+        </div>
+
+        <div id="taskList"></div>
+    </div>
+
+    <script>
+        let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+        let filter = "all";
+
+        function save() {
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+        }
+
+        function addTask() {
+            const input = document.getElementById("taskInput");
+            if (!input.value.trim()) return;
+
+            tasks.push({
+                text: input.value,
+                completed: false
+            });
+            input.value = "";
+            save();
+            render();
+        }
+
+        function toggleTask(index) {
+            tasks[index].completed = !tasks[index].completed;
+            save();
+            render();
+        }
+
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            save();
+            render();
+        }
+
+        function setFilter(f) {
+            filter = f;
+            render();
+        }
+
+        function render() {
+            const list = document.getElementById("taskList");
+            list.innerHTML = "";
+
+            tasks.forEach((task, i) => {
+                if (
+                    filter === "completed" && !task.completed ||
+                    filter === "pending" && task.completed
+                ) return;
+
+                const div = document.createElement("div");
+                div.className = "task";
+
+                div.innerHTML = `
+      <span class="${task.completed ? "completed" : ""}" 
+            onclick="toggleTask(${i})">
+        ${task.text}
+      </span>
+      <button onclick="deleteTask(${i})">❌</button>
+    `;
+
+                list.appendChild(div);
+            });
+        }
+
+        function toggleMode() {
+            document.body.classList.toggle("light");
+        }
+
+        render();
+    </script>
+
+</body>
+
+</html>
